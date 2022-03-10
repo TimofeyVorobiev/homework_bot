@@ -7,6 +7,7 @@ import requests
 import telegram
 from dotenv import load_dotenv
 from requests import RequestException
+import exceptions
 
 load_dotenv()
 
@@ -54,18 +55,13 @@ def get_api_answer(ENDPOINT, current_timestamp):
     """Отправляет запрос к API."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
-    try:
-        homework_statuses = requests.get(
-            ENDPOINT, headers=HEADERS, params=params)
-        if homework_statuses.status_code == 500:
-            raise Exception('Нет ответа от сервера')
-        if homework_statuses.status_code != 200:
-            raise Exception('Ошибка в коде состояния HTTP')
-    except RequestException as error:
-        logging.error(error)
-        raise RequestException(
-            'Ошибка ответа от сервера')
-
+    homework_statuses = requests.get(
+        ENDPOINT,
+        params=params,
+        headers=HEADERS,
+    )
+    if homework_statuses.status_code != 200:
+        raise exceptions.ServerError(exceptions.SERVER_PROBLEMS)
     return homework_statuses.json()
 
 
@@ -84,7 +80,7 @@ def parse_status(homework: dict) -> str:
     homework_status = homework.get('status')
     if homework_status not in HOMEWORK_STATUSES:
         raise KeyError(f'Неизвестный статус {homework_status}')
-    verdict = HOMEWORK_STATUSES[homework_status]
+    verdict = HOMEWORK_STATUSES.get(homework_status)
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
