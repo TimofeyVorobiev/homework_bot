@@ -64,13 +64,15 @@ def get_api_answer(current_timestamp):
     return homework_statuses.json()
 
 
-def check_response(response):
-    """Ответ от сервера с домашней работой."""
-    try:
-        homeworks = response['homeworks']
-    except KeyError:
-        raise KeyError('Нет ключа homeworks')
-    return homeworks
+def check_response(response: list):
+    """Валидация ответов API."""
+    if 'error' in response:
+        raise exceptions.ResponseError(exceptions.RESPONSE_ERROR)
+    if 'homeworks' not in response:
+        raise exceptions.HomeworkKeyError(exceptions.HOMEWORK_KEY_ERROR)
+    if not isinstance(response['homeworks'], list):
+        raise exceptions.HomeworkListError(exceptions.HOMEWORK_LIST_ERROR)
+    return response['homeworks']
 
 
 def parse_status(homework: dict) -> str:
