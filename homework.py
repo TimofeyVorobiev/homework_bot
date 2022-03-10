@@ -61,13 +61,12 @@ def get_api_answer(ENDPOINT, current_timestamp):
             raise Exception('Нет ответа от сервера')
         if homework_statuses.status_code != 200:
             raise Exception('Ошибка в коде состояния HTTP')
-        return homework_statuses.json()
-
     except RequestException as error:
         logging.error(error)
         raise RequestException(
             'Ошибка ответа от сервера')
 
+    return homework_statuses.json()
 
 def check_response(response):
     """Ответ от сервера с домашней работой."""
