@@ -104,6 +104,7 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
+    check_tokens()
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
