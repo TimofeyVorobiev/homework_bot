@@ -27,6 +27,13 @@ HOMEWORK_STATUSES = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
+
+class Undocumented(Exception):
+    """Обрабатывает случай недокументированного статуса ответа от API."""
+
+    pass
+
+
 TOKEN_ERRORS = ['Проверить значение "TELEGRAM_TOKEN"',
                 'Проверить значение "TELEGRAM_CHAT_ID"',
                 'Проверить значение "PRACTICUM_TOKEN"']
@@ -69,15 +76,6 @@ def get_api_answer(ENDPOINT, current_timestamp):
     return homework_statuses.json()
 
 
-def check_response(response):
-    """Ответ от сервера с домашней работой."""
-    try:
-        homeworks = response['homeworks']
-    except KeyError:
-        raise KeyError('Нет ключа homeworks')
-    return homeworks
-
-
 def parse_status(homework: dict) -> str:
     """Извлекает статус работы."""
     homework_name = homework.get('homework_name')
@@ -86,6 +84,20 @@ def parse_status(homework: dict) -> str:
         raise KeyError(f'Неизвестный статус {homework_status}')
     verdict = HOMEWORK_STATUSES.get(homework_status)
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+
+
+def check_response(response):
+    """Ответ от сервера с домашней работой."""
+    homeworks = response.get('homeworks')[0]
+    status = homeworks['status']
+    if status not in HOMEWORK_STATUSES:
+        logging.error(
+            f'Недокументированный статус домашней работы: {status}'
+        )
+        raise Undocumented(
+            f'Недокументированный статус домашней работы: {status}'
+        )
+    return status
 
 
 def check_tokens():
