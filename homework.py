@@ -68,6 +68,7 @@ def get_api_answer(ENDPOINT, current_timestamp):
 
     return homework_statuses.json()
 
+
 def check_response(response):
     """Ответ от сервера с домашней работой."""
     try:
