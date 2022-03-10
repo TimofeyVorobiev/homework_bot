@@ -1,46 +1,51 @@
-import os
-import time
 import logging
+import os
 import sys
+import time
+
 import requests
 import telegram
-from requests import RequestException
 from dotenv import load_dotenv
+from requests import RequestException
 
 load_dotenv()
 
+"""Константы с токенами и telegram chat id."""
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
+"""Обновление в секундах."""
 RETRY_TIME = 600
+"""URL с домашней работой."""
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+"""Авторизация для доступа к домашней работе."""
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 ERROR = 'Ошибка: {0}'
 
+"""Статусы домашней работы."""
 HOMEWORK_STATUSES = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-
+"""Описание ошибок для логов."""
 TOKEN_ERRORS = ['Проверить значение "TELEGRAM_TOKEN"',
                 'Проверить значение "TELEGRAM_CHAT_ID"',
                 'Проверить значение "PRACTICUM_TOKEN"']
 
+"""Параметры логирования, вывод данных в командную строку."""
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.INFO,
-   # filename='bot.log',
     format='%(asctime)s, %(levelname)s, %(name)s, %(message)s',
-   # filemode='w'
 )
 logger.addHandler(logging.StreamHandler())
 
 
 def send_message(bot, message):
-    """Отправляет сообщение"""
+    """Бот отправляет сообщения."""
     logger.info(f'Отправка сообщения: {message}')
     bot_message = bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
     if not bot_message:
@@ -50,13 +55,12 @@ def send_message(bot, message):
 
 
 def get_api_answer(ENDPOINT, current_timestamp):
-    """Отправляет запрос к API"""
+    """Отправляет запрос к API."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
         homework_statuses = requests.get(
             ENDPOINT, headers=HEADERS, params=params)
-
         if homework_statuses.status_code != 200:
             raise Exception('Ошибка в коде состояния HTTP')
         return homework_statuses.json()
@@ -117,6 +121,7 @@ def main():
 
 
 if __name__ == '__main__':
+    """Вывод в консоль сообщения "Выход из программы, вместо ошибки."""
     try:
         main()
     except KeyboardInterrupt:
