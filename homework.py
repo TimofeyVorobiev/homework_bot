@@ -31,12 +31,6 @@ TOKEN_ERRORS = ['Проверить значение "TELEGRAM_TOKEN"',
                 'Проверить значение "TELEGRAM_CHAT_ID"',
                 'Проверить значение "PRACTICUM_TOKEN"']
 
-class Undocumented(Exception):
-    """Обрабатывает случай недокументированного статуса ответа от API."""
-
-    pass
-
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     stream=sys.stdout,
@@ -74,6 +68,14 @@ def get_api_answer(current_timestamp):
         raise error
 
 
+def check_response(response):
+    """Ответ от сервера с домашней работой."""
+    homeworks = response['homeworks']
+    if not isinstance(homeworks, list) and homeworks:
+        raise Exception('Нет homeworks')
+    return homeworks
+
+
 def parse_status(homework):
     """Извлекает статус работы."""
     homework_name = homework.get('homework_name')
@@ -82,15 +84,6 @@ def parse_status(homework):
         raise KeyError(f'Неизвестный статус {homework_status}')
     verdict = HOMEWORK_STATUSES.get(homework_status)
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
-
-
-def check_response(response):
-    """Ответ от сервера с домашней работой."""
-    try:
-        homeworks = response['homeworks']
-    except KeyError:
-        raise KeyError('Нет ключа homeworks')
-    return homeworks
 
 
 def check_tokens():
