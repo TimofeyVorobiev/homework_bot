@@ -56,26 +56,25 @@ def send_message(bot, message):
         logger.info(f'Отправка сообщения: {message}')
 
 
-def get_api_answer(ENDPOINT, current_timestamp):
+def get_api_answer(current_timestamp):
     """Отправляет запрос к API."""
-    timestamp = current_timestamp or int(time.time())
-    params = {'from_date': timestamp}
+    params = {'from_date': current_timestamp}
     try:
         homework_statuses = requests.get(
-            ENDPOINT, headers=HEADERS, params=params)
-        if homework_statuses.status_code == 500:
-            raise Exception('Нет ответа от сервера')
+            ENDPOINT,
+            headers=HEADERS,
+            params=params
+        )
+        logging.info('Сервер работает')
         if homework_statuses.status_code != 200:
-            raise Exception('Ошибка в коде состояния HTTP')
+            raise Exception('Сервер не работает.')
+        return homework_statuses.json()
     except RequestException as error:
-        logging.error(error)
-        raise RequestException(
-            'Ошибка ответа от сервера')
-
-    return homework_statuses.json()
+        logging.error('Ошибочный запрос')
+        raise error
 
 
-def parse_status(homework: dict) -> str:
+def parse_status(homework):
     """Извлекает статус работы."""
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
@@ -109,7 +108,7 @@ def main():
     current_timestamp = int(time.time())
     while True:
         try:
-            response = get_api_answer(ENDPOINT, current_timestamp)
+            response = get_api_answer(current_timestamp)
             homework = check_response(response)
             logger.info("Домашняя работа")
             if isinstance(homework, list) and homework:
