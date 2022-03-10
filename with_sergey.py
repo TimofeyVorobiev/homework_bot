@@ -1,11 +1,12 @@
-import os
-import time
 import logging
+import os
 import sys
+import time
+
 import requests
 import telegram
-from requests import RequestException
 from dotenv import load_dotenv
+from requests import RequestException
 
 load_dotenv()
 
@@ -30,13 +31,15 @@ TOKEN_ERRORS = ['Проверить значение "TELEGRAM_TOKEN"',
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    stream=sys.stdout,
+    #   stream=sys.stdout,
     level=logging.INFO,
-   # filename='bot.log',
+    filename='bot.log',
     format='%(asctime)s, %(levelname)s, %(name)s, %(message)s',
-   # filemode='w'
+    filemode='w'
 )
-logger.addHandler(logging.StreamHandler())
+
+
+# logger.addHandler(logging.StreamHandler())
 
 
 def send_message(bot, message):
@@ -76,10 +79,10 @@ def check_response(response):
     return homeworks
 
 
-def parse_status(homework: dict) -> str:
+def parse_status(homework):
     """Извлекает статус работы."""
-    homework_name = homework.get('homework_name')
-    homework_status = homework.get('status')
+    homework_name = homework['homework_name']
+    homework_status = homework['status']
     if homework_status not in HOMEWORK_STATUSES:
         raise KeyError(f'Неизвестный статус {homework_status}')
     verdict = HOMEWORK_STATUSES[homework_status]
@@ -90,7 +93,7 @@ def check_tokens():
     """Проверка значения переменных TOKENS."""
     if PRACTICUM_TOKEN and TELEGRAM_TOKEN and TELEGRAM_CHAT_ID:
         return True
-    logging.error('Проверить значения TOKENS')
+    logging.critical('Проверить значения TOKENS')
     return False
 
 
@@ -102,9 +105,9 @@ def main():
         try:
             response = get_api_answer(ENDPOINT, current_timestamp)
             homework = check_response(response)
-            logger.info("Домашняя работа")
+            logger.info("Домашняя работы")
             if isinstance(homework, list) and homework:
-                send_message(bot, parse_status(homework))
+                send_message(bot, parse_status(homework[0]))
             else:
                 logger.info("Работы нет")
             current_timestamp = response['current_date']
