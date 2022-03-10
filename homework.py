@@ -27,16 +27,15 @@ HOMEWORK_STATUSES = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
+TOKEN_ERRORS = ['Проверить значение "TELEGRAM_TOKEN"',
+                'Проверить значение "TELEGRAM_CHAT_ID"',
+                'Проверить значение "PRACTICUM_TOKEN"']
 
 class Undocumented(Exception):
     """Обрабатывает случай недокументированного статуса ответа от API."""
 
     pass
 
-
-TOKEN_ERRORS = ['Проверить значение "TELEGRAM_TOKEN"',
-                'Проверить значение "TELEGRAM_CHAT_ID"',
-                'Проверить значение "PRACTICUM_TOKEN"']
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -88,16 +87,11 @@ def parse_status(homework: dict) -> str:
 
 def check_response(response):
     """Ответ от сервера с домашней работой."""
-    homeworks = response.get('homeworks')[0]
-    status = homeworks['status']
-    if status not in HOMEWORK_STATUSES:
-        logging.error(
-            f'Недокументированный статус домашней работы: {status}'
-        )
-        raise Undocumented(
-            f'Недокументированный статус домашней работы: {status}'
-        )
-    return status
+    try:
+        homeworks = response['homeworks']
+    except KeyError:
+        raise KeyError('Нет ключа homeworks')
+    return homeworks
 
 
 def check_tokens():
