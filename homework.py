@@ -6,7 +6,7 @@ import time
 import requests
 import telegram
 from dotenv import load_dotenv
-import exceptions
+from requests import RequestException
 
 load_dotenv()
 
@@ -50,29 +50,32 @@ def send_message(bot, message):
         logger.info(f'Отправка сообщения: {message}')
 
 
-def get_api_answer(current_timestamp):
-    """делает запрос к серверу."""
+def get_api_answer(ENDPOINT, current_timestamp):
+    """Отправляет запрос к API."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
-    homework_statuses = requests.get(
-        ENDPOINT,
-        params=params,
-        headers=HEADERS,
-    )
-    if homework_statuses.status_code != 200:
-        raise exceptions.ServerError(exceptions.SERVER_PROBLEMS)
+    try:
+        homework_statuses = requests.get(
+            ENDPOINT, headers=HEADERS, params=params)
+        if homework_statuses.status_code == 500:
+            raise Exception('Нет ответа от сервера')
+        if homework_statuses.status_code != 200:
+            raise Exception('Ошибка в коде состояния HTTP')
+    except RequestException as error:
+        logging.error(error)
+        raise RequestException(
+            'Ошибка ответа от сервера')
+
     return homework_statuses.json()
 
 
-def check_response(response: list):
-    """Валидация ответов API."""
-    if 'error' in response:
-        raise exceptions.ResponseError(exceptions.RESPONSE_ERROR)
-    if 'homeworks' not in response:
-        raise exceptions.HomeworkKeyError(exceptions.HOMEWORK_KEY_ERROR)
-    if not isinstance(response['homeworks'], list):
-        raise exceptions.HomeworkListError(exceptions.HOMEWORK_LIST_ERROR)
-    return response['homeworks']
+def check_response(response):
+    """Ответ от сервера с домашней работой."""
+    try:
+        homeworks = response['homeworks']
+    except KeyError:
+        raise KeyError('Нет ключа homeworks')
+    return homeworks
 
 
 def parse_status(homework: dict) -> str:
