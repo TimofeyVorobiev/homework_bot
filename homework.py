@@ -10,31 +10,27 @@ from requests import RequestException
 
 load_dotenv()
 
-"""Константы с токенами и telegram chat id."""
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-"""Обновление в секундах."""
 RETRY_TIME = 600
-"""URL с домашней работой."""
+
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
-"""Авторизация для доступа к домашней работе."""
+
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 ERROR = 'Ошибка: {0}'
 
-"""Статусы домашней работы."""
 HOMEWORK_STATUSES = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-"""Описание ошибок для логов."""
+
 TOKEN_ERRORS = ['Проверить значение "TELEGRAM_TOKEN"',
                 'Проверить значение "TELEGRAM_CHAT_ID"',
                 'Проверить значение "PRACTICUM_TOKEN"']
 
-"""Параметры логирования, вывод данных в командную строку."""
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     stream=sys.stdout,
@@ -121,7 +117,6 @@ def main():
 
 
 if __name__ == '__main__':
-    """Вывод в консоль сообщения "Выход из программы, вместо ошибки."""
     try:
         main()
     except KeyboardInterrupt:
