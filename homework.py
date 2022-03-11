@@ -21,15 +21,11 @@ ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 ERROR = 'Ошибка: {0}'
 
-HOMEWORK_STATUSES = {
+HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-
-TOKEN_ERRORS = ['Проверить значение "TELEGRAM_TOKEN"',
-                'Проверить значение "TELEGRAM_CHAT_ID"',
-                'Проверить значение "PRACTICUM_TOKEN"']
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -45,7 +41,7 @@ def send_message(bot, message):
     logger.info(f'Отправка сообщения: {message}')
     bot_message = bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
     if not bot_message:
-        raise telegram.TelegramError(f'Ошибка при отправке: {message}')
+        logger.info(f'Ошибка при отправке: {message}')
     else:
         logger.info(f'Отправка сообщения: {message}')
 
@@ -59,7 +55,6 @@ def get_api_answer(current_timestamp):
             headers=HEADERS,
             params=params
         )
-        logging.info('Сервер работает')
         if homework_statuses.status_code != 200:
             raise Exception('Сервер не работает.')
         return homework_statuses.json()
@@ -68,57 +63,51 @@ def get_api_answer(current_timestamp):
         raise error
 
 
+def parse_status(homework):
+    """Извлекает статус работы."""
+    name = homework.get('homework_name')
+    status = homework.get('status')
+    if status not in HOMEWORK_VERDICTS:
+        raise KeyError(f'Неизвестный статус {status}')
+    return f'Изменился статус проверки работы "{name}". ' \
+           f'{HOMEWORK_VERDICTS.get(status)}'
+
+
 def check_response(response):
     """Ответ от сервера с домашней работой."""
     homeworks = response['homeworks']
-    if not isinstance(homeworks, list) and homeworks:
+    if isinstance(homeworks, list) and homeworks:
         raise Exception('Нет homeworks')
     return homeworks
 
 
-def parse_status(homework):
-    """Извлекает статус работы."""
-    homework_name = homework.get('homework_name')
-    homework_status = homework.get('status')
-    if homework_status not in HOMEWORK_STATUSES:
-        raise KeyError(f'Неизвестный статус {homework_status}')
-    verdict = HOMEWORK_STATUSES.get(homework_status)
-    return f'Изменился статус проверки работы "{homework_name}". {verdict}'
-
-
 def check_tokens():
     """Проверка значения переменных TOKENS."""
-    if PRACTICUM_TOKEN and TELEGRAM_TOKEN and TELEGRAM_CHAT_ID:
-        return True
-    logging.error('Проверить значения TOKENS')
-    return False
+    tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
+    return all(tokens)
 
 
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        raise RuntimeError('Ошибка, связанная с токенами')
+        raise Exception(
+            "Проверить PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID.")
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
-    prev_message = ''
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            homework = check_response(response)
-            logger.info("Домашняя работа")
-            if homework:
-                send_message(bot, parse_status(homework[0]))
+            homeworks = check_response(response)
+            if isinstance(homeworks, list) and homeworks:
+                send_message(bot, parse_status(homeworks[0]))
             else:
                 logger.info("Работы нет")
-            current_timestamp = response['current_date']
+            current_timestamp = response.get('current_date'[1])
             time.sleep(RETRY_TIME)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            logging.error(message, stack_info=True)
-            if message != prev_message:
-                send_message(bot, message)
-                prev_message = message
-            time.sleep(RETRY_TIME)
+            logging.error(message, exc_info=True)
+            send_message(bot, message)
 
 
 if __name__ == '__main__':
@@ -126,4 +115,3 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print('Выход из программы')
-        sys.exit(0)
