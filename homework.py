@@ -96,15 +96,17 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
-    check_tokens()
+    if not check_tokens():
+        raise RuntimeError('Ошибка, связанная с токенами')
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
+    prev_message = ''
     while True:
         try:
             response = get_api_answer(current_timestamp)
             homework = check_response(response)
             logger.info("Домашняя работа")
-            if isinstance(homework, list) and homework:
+            if homework:
                 send_message(bot, parse_status(homework[0]))
             else:
                 logger.info("Работы нет")
@@ -113,7 +115,9 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.error(message, stack_info=True)
-            send_message(bot, message)
+            if message != prev_message:
+                send_message(bot, message)
+                prev_message = message
             time.sleep(RETRY_TIME)
 
 
