@@ -105,7 +105,7 @@ def main():
             homework = check_response(response)
             logger.info("Домашняя работа")
             if isinstance(homework, list) and homework:
-                send_message(bot, parse_status(homework))
+                send_message(bot, parse_status(homework[0]))
             else:
                 logger.info("Работы нет")
             current_timestamp = response['current_date']
