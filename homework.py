@@ -63,6 +63,17 @@ def get_api_answer(current_timestamp):
         raise error
 
 
+def check_response(response):
+    """Ответ от сервера с домашней работой."""
+    try:
+        homeworks = response['homeworks']
+    except KeyError:
+        raise KeyError('Нет ключа homeworks')
+    if not isinstance(homeworks, list) and homeworks:
+        raise Exception('Нет homeworks')
+    return homeworks
+
+
 def parse_status(homework):
     """Извлекает статус работы."""
     name = homework.get('homework_name')
@@ -71,14 +82,6 @@ def parse_status(homework):
         raise KeyError(f'Неизвестный статус {status}')
     return f'Изменился статус проверки работы "{name}". ' \
            f'{HOMEWORK_VERDICTS.get(status)}'
-
-
-def check_response(response):
-    """Ответ от сервера с домашней работой."""
-    homeworks = response['homeworks']
-    if isinstance(homeworks, list) and homeworks:
-        raise Exception('Нет homeworks')
-    return homeworks
 
 
 def check_tokens():
