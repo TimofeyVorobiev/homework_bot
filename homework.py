@@ -93,24 +93,28 @@ def check_tokens():
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        raise Exception(
-            "Проверить PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID.")
+        raise RuntimeError('Ошибка, связанная с токенами')
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
+    prev_message = ''
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            homeworks = check_response(response)
-            if isinstance(homeworks, list) and homeworks:
-                send_message(bot, parse_status(homeworks[0]))
+            homework = check_response(response)
+            logger.info("Домашняя работа")
+            if homework:
+                send_message(bot, parse_status(homework[0]))
             else:
                 logger.info("Работы нет")
-            current_timestamp = response.get('current_date'[1])
+            current_timestamp = response['current_date']
             time.sleep(RETRY_TIME)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            logging.error(message, exc_info=True)
-            send_message(bot, message)
+            logging.error(message, stack_info=True)
+            if message != prev_message:
+                send_message(bot, message)
+                prev_message = message
+            time.sleep(RETRY_TIME)
 
 
 if __name__ == '__main__':
