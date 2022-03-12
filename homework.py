@@ -29,7 +29,6 @@ HOMEWORK_VERDICTS = {
 
 def send_message(bot, message):
     """Бот отправляет сообщения."""
-    message = bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
     try:
         logging.info(f'Отправка сообщения: {message}')
     except Exception as error:
@@ -94,14 +93,17 @@ def main():
         raise RuntimeError('Ошибка, связанная с токенами')
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
+    message = ''
     prev_message = ''
     while True:
         try:
             response = get_api_answer(current_timestamp)
             homeworks = check_response(response)
-            logger.info("Домашняя работа")
             if homeworks:
                 send_message(bot, parse_status(homeworks[0]))
+            if message != prev_message:
+                send_message(bot, message)
+                prev_message = message
             else:
                 logger.info("Работы нет")
             current_timestamp = response['current_date']
@@ -109,9 +111,7 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.error(message, exc_info=True)
-            if message != prev_message:
-                send_message(bot, message)
-                prev_message = message
+        finally:
             time.sleep(RETRY_TIME)
 
 
