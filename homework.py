@@ -45,12 +45,12 @@ def get_api_answer(current_timestamp):
             headers=HEADERS,
             params=params
         )
-        if homework_statuses.status_code != 200:
-            raise Exception('Сервер не работает.')
-        return homework_statuses.json()
     except RequestException as error:
         logging.error('Ошибочный запрос')
         raise error
+    if homework_statuses.status_code != 200:
+        raise Exception('Сервер не работает.')
+    return homework_statuses.json()
 
 
 def check_response(response):
