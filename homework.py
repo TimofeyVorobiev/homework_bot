@@ -52,6 +52,7 @@ def get_api_answer(current_timestamp):
         logging.error('Ошибочный запрос')
         raise error
 
+
 def check_response(response):
     """Ответ от сервера с домашней работой."""
     try:
@@ -111,8 +112,6 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.error(message, exc_info=True)
-        finally:
-            time.sleep(RETRY_TIME)
 
 
 if __name__ == '__main__':
