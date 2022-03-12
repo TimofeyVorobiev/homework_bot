@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 import time
 
 import requests
@@ -27,23 +26,15 @@ HOMEWORK_VERDICTS = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.INFO,
-    format='%(asctime)s, %(levelname)s, %(name)s, %(message)s',
-)
-logger.addHandler(logging.StreamHandler())
-
 
 def send_message(bot, message):
     """Бот отправляет сообщения."""
-    logger.info(f'Отправка сообщения: {message}')
-    bot_message = bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-    if not bot_message:
-        logger.info(f'Ошибка при отправке: {message}')
-    else:
-        logger.info(f'Отправка сообщения: {message}')
+    message = bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+    try:
+        logging.info(f'Отправка сообщения: {message}')
+    except Exception as error:
+        message = f'Сбой при отправке сообщения:  {error}'
+        logging.error(message)
 
 
 def get_api_answer(current_timestamp):
@@ -62,14 +53,13 @@ def get_api_answer(current_timestamp):
         logging.error('Ошибочный запрос')
         raise error
 
-
 def check_response(response):
     """Ответ от сервера с домашней работой."""
     try:
         homeworks = response['homeworks']
     except KeyError:
         raise KeyError('Нет ключа homeworks')
-    if not isinstance(homeworks, list) and homeworks:
+    if not isinstance(homeworks, list):
         raise Exception('Нет homeworks')
     return homeworks
 
@@ -85,9 +75,17 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверка значения переменных TOKENS."""
-    tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
-    return all(tokens)
+    """Проверяет доступность переменных окружения."""
+    if not PRACTICUM_TOKEN:
+        logging.critical(f'Ошибка в {PRACTICUM_TOKEN}')
+        return False
+    if not TELEGRAM_TOKEN:
+        logging.critical(f'Ошибка в {TELEGRAM_TOKEN}')
+        return False
+    if not TELEGRAM_CHAT_ID:
+        logging.critical(f'Ошибка в {TELEGRAM_CHAT_ID}')
+        return False
+    return True
 
 
 def main():
@@ -100,17 +98,17 @@ def main():
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            homework = check_response(response)
+            homeworks = check_response(response)
             logger.info("Домашняя работа")
-            if homework:
-                send_message(bot, parse_status(homework[0]))
+            if homeworks:
+                send_message(bot, parse_status(homeworks[0]))
             else:
                 logger.info("Работы нет")
             current_timestamp = response['current_date']
             time.sleep(RETRY_TIME)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            logging.error(message, stack_info=True)
+            logging.error(message, exc_info=True)
             if message != prev_message:
                 send_message(bot, message)
                 prev_message = message
@@ -118,6 +116,13 @@ def main():
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(
+        level=logging.INFO,
+        filename='main.log',
+        filemode='a',
+        format='%(asctime)s, %(levelname)s, %(name)s, %(message)s',
+    )
     try:
         main()
     except KeyboardInterrupt:
