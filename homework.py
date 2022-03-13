@@ -53,7 +53,8 @@ def get_api_answer(current_timestamp):
             raise Exception('Сервер не работает.')
         return homework_statuses.json()
     except RequestException as error:
-        logging.error('Ошибочный запрос к серверу')
+        logging.error('Ошибки в запросе к серверу, '
+                      'проверьте ENDPOINT, HEADERS')
         raise error
     except JSONDecodeError:
         logging.error('Ответ от сервера не в формате JSON')
