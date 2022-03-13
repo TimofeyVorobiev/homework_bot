@@ -1,6 +1,8 @@
 import logging
 import os
 import time
+from http import HTTPStatus
+from json import JSONDecodeError
 
 import requests
 import telegram
@@ -30,10 +32,12 @@ HOMEWORK_VERDICTS = {
 def send_message(bot, message):
     """Бот отправляет сообщения."""
     try:
+        bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logging.info(f'Отправка сообщения: {message}')
     except Exception as error:
-        message = f'Сбой при отправке сообщения:  {error}'
-        logging.error(message)
+        logging.exception(
+            f'Сообщение {message} не отправлено, ошибка: {error}'
+        )
 
 
 def get_api_answer(current_timestamp):
@@ -45,12 +49,14 @@ def get_api_answer(current_timestamp):
             headers=HEADERS,
             params=params
         )
+        if homework_statuses.status_code != HTTPStatus.OK:
+            raise Exception('Сервер не работает.')
+        return homework_statuses.json()
     except RequestException as error:
-        logging.error('Ошибочный запрос')
+        logging.error('Ошибочный запрос к серверу')
         raise error
-    if homework_statuses.status_code != 200:
-        raise Exception('Сервер не работает.')
-    return homework_statuses.json()
+    except JSONDecodeError:
+        logging.error('Ответ от сервера не в формате JSON')
 
 
 def check_response(response):
@@ -91,7 +97,7 @@ def check_tokens():
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        raise RuntimeError('Ошибка, связанная с токенами')
+        raise ValueError('Ошибка, связанная с токенами')
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     message = ''
