@@ -1,13 +1,13 @@
 """Описание классов собственных исключений."""
 
 
-class EndpointError(Exception):
+class NoKeyHomeworks(Exception):
     """Исключение недоступности эндпоинта."""
 
     pass
 
 
-class InvalidResponse(TypeError):
+class NoHomeworks(TypeError):
     """Исключение при некорректном ответе сервера."""
 
     pass
@@ -18,14 +18,3 @@ class NoStatusCode(Exception):
 
     pass
 
-
-class KeyNotFind(KeyError):
-    """Исключение при отсутствии ключа для словаря."""
-
-    pass
-
-
-class VariableNotDefined(Exception):
-    """Исключение при незаданности переменных окружения."""
-
-    pass

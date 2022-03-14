@@ -8,8 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from exceptions import (EndpointError, InvalidResponse, NoStatusCode,
-                        KeyNotFind, VariableNotDefined)
+from exceptions import (NoStatusCode, NoKeyHomeworks, NoHomeworks)
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
@@ -47,10 +46,10 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     try:
         homeworks = response['homeworks']
-    except KeyError:
-        raise KeyError('Нет ключа homeworks')
+    except NoKeyHomeworks:
+        raise NoKeyHomeworks('Нет ключа homeworks')
     if not isinstance(homeworks, list):
-        raise Exception('Нет homeworks')
+        raise NoHomeworks('Нет homeworks')
     return homeworks
 
 def parse_status(homework):
