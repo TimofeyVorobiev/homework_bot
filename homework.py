@@ -32,6 +32,7 @@ def send_message(bot, message):
     except Exception:
         logging.error(f'Бот не отправил сообщение "{message}"')
 
+
 def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
@@ -52,6 +53,7 @@ def check_response(response):
         raise NoHomeworks('Нет homeworks')
     return homeworks
 
+
 def parse_status(homework):
     name = homework.get('homework_name')
     status = homework.get('status')
@@ -59,7 +61,6 @@ def parse_status(homework):
         raise KeyError(f'Неизвестный статус {status}')
     return f'Изменился статус проверки работы "{name}". ' \
            f'{HOMEWORK_VERDICTS.get(status)}'
-
 
 
 def check_tokens():
