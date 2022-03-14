@@ -86,7 +86,7 @@ class TestHomework:
         except KeyError:
             pass
     try:
-        import homework
+        import homework_old
     except KeyError as e:
         for arg in e.args:
             if arg in ENV_VARS:
@@ -109,7 +109,7 @@ class TestHomework:
             except KeyError:
                 pass
 
-        import homework
+        import homework_old
 
         for v in self.ENV_VARS:
             utils.check_default_var_exists(homework, v)
@@ -133,7 +133,7 @@ class TestHomework:
             except KeyError:
                 pass
 
-        import homework
+        import homework_old
 
         for v in self.ENV_VARS:
             utils.check_default_var_exists(homework, v)
@@ -151,7 +151,7 @@ class TestHomework:
         )
 
     def test_bot_init_not_global(self):
-        import homework
+        import homework_old
 
         assert not (hasattr(homework, 'bot') and isinstance(getattr(homework, 'bot'), telegram.Bot)), (
             'Убедитесь, что бот инициализирован только в main()'
@@ -163,7 +163,7 @@ class TestHomework:
 
         monkeypatch.setattr(telegram, "Bot", mock_telegram_bot)
 
-        import homework
+        import homework_old
 
         assert hasattr(homework, 'logging'), (
             'Убедитесь, что настроили логирование для вашего бота'
@@ -175,7 +175,7 @@ class TestHomework:
 
         monkeypatch.setattr(telegram, "Bot", mock_telegram_bot)
 
-        import homework
+        import homework_old
         utils.check_function(homework, 'send_message', 2)
 
     def test_get_api_answers(self, monkeypatch, random_timestamp,
@@ -188,7 +188,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'get_api_answer'
         utils.check_function(homework, func_name, 1)
@@ -234,7 +234,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_500_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'get_api_answer'
         try:
@@ -257,7 +257,7 @@ class TestHomework:
             "lesson_name": "Итоговый проект"
         }
 
-        import homework
+        import homework_old
 
         func_name = 'parse_status'
 
@@ -317,7 +317,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'check_response'
         response = homework.get_api_answer(current_timestamp)
@@ -354,7 +354,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'parse_status'
         response = homework.get_api_answer(current_timestamp)
@@ -402,7 +402,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'parse_status'
         response = homework.get_api_answer(current_timestamp)
@@ -450,7 +450,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'parse_status'
         response = homework.get_api_answer(current_timestamp)
@@ -486,7 +486,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_no_homeworks_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'check_response'
         result = homework.get_api_answer(current_timestamp)
@@ -527,7 +527,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'check_response'
         response = homework.get_api_answer(current_timestamp)
@@ -567,7 +567,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'check_response'
         response = homework.get_api_answer(current_timestamp)
@@ -601,7 +601,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_empty_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'check_response'
         result = homework.get_api_answer(current_timestamp)
@@ -628,7 +628,7 @@ class TestHomework:
 
         monkeypatch.setattr(requests, 'get', mock_response_get)
 
-        import homework
+        import homework_old
 
         func_name = 'check_response'
         try:
