@@ -6,9 +6,9 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
-load_dotenv()
-
 from exceptions import (NoStatusCode, NoKeyHomeworks, NoHomeworks)
+
+load_dotenv()
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
@@ -26,6 +26,7 @@ HOMEWORK_VERDICTS = {
 
 
 def send_message(bot, message):
+    """Функция отправляет сообщение в Telegram чат."""
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logging.info(f'Бот отправил сообщение "{message}"')
@@ -34,6 +35,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
+    """Функция делает запрос к API-сервиса."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     statuses = requests.get(ENDPOINT, headers=HEADERS, params=params)
@@ -45,6 +47,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
+    """Функция проверяет ответ API на корректность."""
     try:
         homeworks = response['homeworks']
     except NoKeyHomeworks:
@@ -55,6 +58,7 @@ def check_response(response):
 
 
 def parse_status(homework):
+    """Функция проверяет информацию о статусе домашней работы."""
     name = homework.get('homework_name')
     status = homework.get('status')
     if status not in HOMEWORK_VERDICTS:
@@ -64,6 +68,7 @@ def parse_status(homework):
 
 
 def check_tokens():
+    """Функция проверяет доступность переменных окружения."""
     if PRACTICUM_TOKEN and TELEGRAM_TOKEN and TELEGRAM_CHAT_ID:
         return True
     else:
