@@ -1,19 +1,13 @@
 """Описание классов собственных исключений."""
 
 
-class NoKeyHomeworksCurrentDateError(Exception):
-    """Исключение при отсутсвии ключа дз."""
-
-    pass
-
-
-class EmptyResponseError(TypeError):
+class BotSendMessageError(TypeError):
     """Исключение при отсутсвии дз."""
 
     pass
 
 
-class NoStatusCodeError(Exception):
+class StatusCodeError(Exception):
     """Исключение при неверном статусе дз."""
 
     pass
