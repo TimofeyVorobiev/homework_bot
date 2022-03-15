@@ -58,12 +58,12 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     """Функция проверяет ответ API на корректность."""
     if not isinstance(response, dict):
-        raise TypeError(f'Нет ключа homeworks в ответе от сервиса API.')
+        raise TypeError('Нет ключа homeworks в ответе от сервиса API.')
     if 'homeworks' not in response:
         raise KeyError('Получен некорректный ответ от сервиса API.')
     homeworks = response['homeworks']
     if not isinstance(response['homeworks'], list):
-        raise TypeError('В ответе от сервиса API нет представлен списком.')
+        raise TypeError('Ответ от сервиса API нет представлен списком.')
     return homeworks
 
 
