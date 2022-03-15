@@ -10,6 +10,7 @@ from requests import RequestException
 from exceptions import (NoStatusCodeError,
                         NoKeyHomeworksCurrentDateError,
                         )
+
 TokenError = 'Отстутствует переменная окружения {name}'
 
 load_dotenv()
@@ -40,19 +41,19 @@ def send_message(bot, message):
 
 def get_api_answer(current_timestamp):
     """Функция делает запрос к API-сервиса."""
-#  timestamp = current_timestamp or int(time.time())
+    #  timestamp = current_timestamp or int(time.time())
     params = {'from_date': current_timestamp}
     try:
         statuses = requests.get(ENDPOINT, headers=HEADERS, params=params)
     except RequestException as error:
-        raise ConnectionError (f'Ошибка доступа {error}. '
-        f'Проверить API: {ENDPOINT}, '
-        f'токен авторизации: {HEADERS}, запрос с момента времени: {params}')
+        raise ConnectionError(f'Ошибка доступа {error}. '
+                              f'Проверить API: {ENDPOINT}, '
+                              f'токен авторизации: {HEADERS}, запрос с момента времени: {params}')
     if statuses.status_code != 200:
         raise NoStatusCodeError(
-        f'Ошибка ответа сервера. Проверить API: {ENDPOINT}, '
-        f'токен авторизации: {HEADERS}, запрос с момента времени: {params}'
-    )
+            f'Ошибка ответа сервера. Проверить API: {ENDPOINT}, '
+            f'токен авторизации: {HEADERS}, запрос с момента времени: {params}'
+        )
     return statuses.json()
 
 
