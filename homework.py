@@ -48,7 +48,8 @@ def get_api_answer(current_timestamp):
     except RequestException as error:
         raise ConnectionError(f'Ошибка доступа {error}. '
                               f'Проверить API: {ENDPOINT}, '
-                              f'токен авторизации: {HEADERS}, запрос с момента времени: {params}')
+                              f'токен авторизации: {HEADERS}, '
+                              f'апрос с момента времени: {params}')
     if statuses.status_code != 200:
         raise NoStatusCodeError(
             f'Ошибка ответа сервера. Проверить API: {ENDPOINT}, '
