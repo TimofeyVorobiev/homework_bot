@@ -124,7 +124,7 @@ if __name__ == '__main__':
     LOG_FILE = __file__ + '.log'
     logging.basicConfig(
         level=logging.INFO,
-   #     filename='homework_bot.log',
+        filename='homework_bot.log',
         filemode='a',
         format='%(asctime)s, %(levelname)s, %(name)s, %(message)s',
     )
