@@ -9,8 +9,6 @@ from requests import RequestException
 
 from exceptions import (StatusCodeError, BotSendMessageError)
 
-TokenError = 'Отстутствует переменная окружения {name}'
-
 load_dotenv()
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
@@ -81,6 +79,7 @@ def parse_status(homework):
 
 
 def check_tokens():
+    """Функция проверяет доступность переменных окружения."""
     for name in TOKENS:
         if globals()[name] is None:
             return False
