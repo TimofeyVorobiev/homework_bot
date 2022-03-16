@@ -7,7 +7,7 @@ from telegram import Bot, TelegramError
 from dotenv import load_dotenv
 from requests import RequestException
 
-from exceptions import (StatusCodeError, BotSendMessageError)
+from exceptions import (StatusCodeError)
 
 load_dotenv()
 
@@ -34,7 +34,6 @@ def send_message(bot, message):
     except TelegramError as error:
         logging.error(f'{error}, Бот не отправил сообщение '
                       f'{message}', exc_info=True)
-        raise BotSendMessageError(f'Бот не отправил сообщение {message}')
 
 
 def get_api_answer(current_timestamp):
@@ -60,12 +59,12 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     """Функция проверяет ответ API на корректность."""
     if not isinstance(response, dict):
-        raise TypeError('В ответ от сервиса API нет словаря.')
+        raise TypeError('В ответ от сервиса API нет корректных данных.')
     if 'homeworks' not in response:
         raise KeyError('Нет ключа homeworks в ответе от сервиса API')
     homeworks = response['homeworks']
     if not isinstance(response['homeworks'], list):
-        raise TypeError('Ответ от сервиса API нет представлен списком.')
+        raise TypeError('Домашняя работа нет представлена списком.')
     return homeworks
 
 
@@ -73,8 +72,6 @@ def parse_status(homework):
     """Функция проверяет информацию о статусе домашней работы."""
     name = homework['homework_name']
     status = homework['status']
-    if VERDICTS is None:
-        raise KeyError(f'Отсутствует домашняя работа {VERDICTS}')
     if status not in VERDICTS:
         raise ValueError(f'Неизвестный статус домашней работы {status}')
     return f'Изменился статус проверки работы "{name}". {VERDICTS[status]}'
@@ -82,11 +79,14 @@ def parse_status(homework):
 
 def check_tokens():
     """Функция проверяет доступность переменных окружения."""
-    for name in TOKENS:
-        if globals()[name] is None:
-            logging.info(f'Проверьте {name} токен')
-            return False
-    return True
+    try:
+        for name in TOKENS:
+            if globals()[name] is None:
+                logging.info(f'Проверьте {name} токен')
+        return False
+    finally:
+        if globals()[name]:
+            return True
 
 
 def main():
@@ -99,17 +99,18 @@ def main():
         try:
             response = get_api_answer(current_timestamp)
             homeworks = check_response(response)
-            logging.info("Статус домашней работы")
             if not homeworks:
                 logging.info("Новые статусы отсутствуют.")
             else:
                 send_message(bot, parse_status(homeworks[0]))
             current_timestamp = response.get(
-                'current_date', 'current_timestamp'
+                'current_date', current_timestamp
             )
             time.sleep(RETRY_TIME)
         except Exception as error:
             logging.error(f'Сбой в работе программы: {error}')
+            send_message(bot, message=f'Сбой в работе программы: {error}')
+            time.sleep(RETRY_TIME)
 
 
 if __name__ == '__main__':
