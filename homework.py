@@ -3,7 +3,7 @@ import os
 import time
 
 import requests
-import telegram
+from telegram import Bot, TelegramError
 from dotenv import load_dotenv
 from requests import RequestException
 
@@ -14,7 +14,7 @@ load_dotenv()
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-TOKENS = ('PRACTICUM_TOKEN', 'TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID')
+TOKENS = ['PRACTICUM_TOKEN', 'TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID']
 RETRY_TIME = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
@@ -31,8 +31,10 @@ def send_message(bot, message):
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logging.info(f'Бот отправил сообщение "{message}"')
-    except BotSendMessageError:
-        logging.error(f'Бот не отправил сообщение "{message}"', exc_info=True)
+    except TelegramError as error:
+        logging.error(f'{error}, Бот не отправил сообщение '
+                      f'{message}', exc_info=True)
+        raise BotSendMessageError(f'Бот не отправил сообщение {message}')
 
 
 def get_api_answer(current_timestamp):
@@ -58,9 +60,9 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     """Функция проверяет ответ API на корректность."""
     if not isinstance(response, dict):
-        raise TypeError('Нет ключа homeworks в ответе от сервиса API.')
+        raise TypeError('В ответ от сервиса API нет словаря.')
     if 'homeworks' not in response:
-        raise KeyError('Получен некорректный ответ от сервиса API.')
+        raise KeyError('Нет ключа homeworks в ответе от сервиса API')
     homeworks = response['homeworks']
     if not isinstance(response['homeworks'], list):
         raise TypeError('Ответ от сервиса API нет представлен списком.')
@@ -71,8 +73,8 @@ def parse_status(homework):
     """Функция проверяет информацию о статусе домашней работы."""
     name = homework['homework_name']
     status = homework['status']
-    if name is None:
-        raise KeyError(f'Отсутствует домашняя работа {status}')
+    if VERDICTS is None:
+        raise KeyError(f'Отсутствует домашняя работа {VERDICTS}')
     if status not in VERDICTS:
         raise ValueError(f'Неизвестный статус домашней работы {status}')
     return f'Изменился статус проверки работы "{name}". {VERDICTS[status]}'
@@ -82,16 +84,16 @@ def check_tokens():
     """Функция проверяет доступность переменных окружения."""
     for name in TOKENS:
         if globals()[name] is None:
+            logging.info(f'Проверьте {name} токен')
             return False
-        else:
-            return True
+    return True
 
 
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
         raise ValueError('Проверьте значение токенов')
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    bot = Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
         try:
@@ -99,14 +101,15 @@ def main():
             homeworks = check_response(response)
             logging.info("Статус домашней работы")
             if not homeworks:
-                logging.debug("Новые статусы отсутствуют.")
-            send_message(bot, parse_status(homeworks[0]))
-            current_timestamp = response.get('current_date', int(time.time()))
+                logging.info("Новые статусы отсутствуют.")
+            else:
+                send_message(bot, parse_status(homeworks[0]))
+            current_timestamp = response.get(
+                'current_date', 'current_timestamp'
+            )
             time.sleep(RETRY_TIME)
         except Exception as error:
-            message = f'Сбой в работе программы: {error}'
-            logging.error(message)
-            time.sleep(RETRY_TIME)
+            logging.error(f'Сбой в работе программы: {error}')
 
 
 if __name__ == '__main__':
@@ -115,7 +118,7 @@ if __name__ == '__main__':
     logging.basicConfig(
         level=logging.INFO,
         filename='homework_bot.log',
-        filemode='a',
+        filemode='w',
         format='%(asctime)s, %(levelname)s, %(name)s, %(message)s',
     )
     try:
