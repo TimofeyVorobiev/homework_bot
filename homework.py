@@ -79,15 +79,14 @@ def parse_status(homework):
 
 def check_tokens():
     """Функция проверяет доступность переменных окружения."""
-    try:
-        for name in TOKENS:
-            if globals()[name] is None:
-                logging.info(f'Проверьте {name} токен')
-                raise TypeError(f'Проверьте {name} токен')
+    is_tokens = True
+    for name in TOKENS:
+        if globals()[name] is None:
+            logging.info(f'Проверьте {name} токен')
+            is_tokens = False
+    if not is_tokens:
         return False
-    finally:
-        if globals()[name]:
-            return True
+    return True
 
 
 def main():
