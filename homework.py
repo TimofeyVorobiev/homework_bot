@@ -83,6 +83,7 @@ def check_tokens():
         for name in TOKENS:
             if globals()[name] is None:
                 logging.info(f'Проверьте {name} токен')
+                raise TypeError(f'Проверьте {name} токен')
         return False
     finally:
         if globals()[name]:
